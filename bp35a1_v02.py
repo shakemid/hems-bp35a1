@@ -23,7 +23,7 @@ rbpwd = config.get('config', 'rbpwd')
 serialPortDev = config.get('config', 'serialPortDev')
 
 # シリアルポート初期化
-ser = serial.Serial(serialPortDev, 115200, timeout = 1)
+ser = serial.Serial(serialPortDev, 115200)
 
 # とりあえずバージョンを取得してみる（やらなくてもおｋ）
 cmd = "SKVER\r\n"
@@ -119,7 +119,7 @@ while not bConnected :
         bConnected = True
 
 # これ以降、シリアル通信のタイムアウトを設定
-ser.timeout = 2
+ser.timeout = 5
 
 # スマートメーターがインスタンスリスト通知を投げてくる
 # (ECHONET-Lite_Ver.1.12_02.pdf p.4-16)
@@ -148,31 +148,33 @@ ser.write(command)
 print(ser.readline()) # エコーバック
 print(ser.readline()) # EVENT 21 が来るはず（チェック無し）
 print(ser.readline()) # OKが来るはず（チェック無し）
+print(ser.readline()) # 改行が来るはず（チェック無し）
 
-while True :
-    line = ser.readline()
-    print(line)
-    
-    # 受信データはたまに違うデータが来たり、
-    # 取りこぼしたりして変なデータを拾うことがあるので
-    # チェックを厳しめにしてます。
-    if line.startswith(b"ERXUDP") :
-        cols = line.decode().strip().split(' ')
-        res = cols[8]   # UDP受信データ部分
-        #tid = res[4:4+4];
-        seoj = res[8:8+6]
-        #deoj = res[14,14+6]
-        ESV = res[20:20+2]
-        #OPC = res[22,22+2]
-        if seoj == "028801" and ESV == "72" :
-            # スマートメーター(028801)から来た応答(72)なら
-            EPC = res[24:24+2]
-            if EPC == "E7" :
-                # 内容が瞬時電力計測値(E7)だったら
-                hexPower = line[-8:]    # 最後の4バイト（16進数で8文字）が瞬時電力計測値
-                intPower = int(hexPower, 16)
-                print(u"瞬時電力計測値: {0} [W]".format(intPower))
-                break
+line = ser.readline() # ERXUDPが来るはず
+print(line)
+
+# 受信データはたまに違うデータが来たり、
+# 取りこぼしたりして変なデータを拾うことがあるので
+# チェックを厳しめにしてます。
+if line.startswith(b"ERXUDP") :
+    cols = line.decode().strip().split(' ')
+    res = cols[8]   # UDP受信データ部分
+    #tid = res[4:4+4];
+    seoj = res[8:8+6]
+    #deoj = res[14,14+6]
+    ESV = res[20:20+2]
+    #OPC = res[22,22+2]
+    if seoj == "028801" and ESV == "72" :
+        # スマートメーター(028801)から来た応答(72)なら
+        EPC = res[24:24+2]
+        if EPC == "E7" :
+            # 内容が瞬時電力計測値(E7)だったら
+            hexPower = line[-8:]    # 最後の4バイト（16進数で8文字）が瞬時電力計測値
+            intPower = int(hexPower, 16)
+            print(u"瞬時電力計測値: {0} [W]".format(intPower))
+else :
+    print("不明なデータを受信")
+    sys.exit(1)
 
 ser.close()
 sys.exit(0)
