@@ -119,7 +119,7 @@ while not bConnected :
         bConnected = True
 
 # これ以降、シリアル通信のタイムアウトを設定
-ser.timeout = 5
+ser.timeout = 10
 
 # スマートメーターがインスタンスリスト通知を投げてくる
 # (ECHONET-Lite_Ver.1.12_02.pdf p.4-16)
