@@ -1,0 +1,14 @@
+[config]
+  # Bルート認証ID（東京電力パワーグリッドから郵送で送られてくるヤツ）
+  rbid  = 00000000000000000000000000000000
+  
+  # Bルート認証パスワード（東京電力パワーグリッドからメールで送られてくるヤツ）
+  rbpwd = XXXXXXXXXXXX
+
+  # シリアルポートデバイス名
+  # Windows の場合
+  #serialPortDev = COM3  
+  # Linux(ラズパイなど）の場合
+  serialPortDev = /dev/ttyUSB0
+  # Mac の場合
+  #serialPortDev = /dev/cu.usbserial-A103BTPR
